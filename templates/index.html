@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineRecs - Movie Recommendations</title>
+    <style>
+        /* Basic styling for the entire page */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background-color: #f9f9f9;
+        }
+
+        /* Center the main content block */
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            max-width: 900px;  /* Limit the width of the main content */
+            padding: 20px;
+        }
+
+        /* Title */
+        h1 {
+            font-size: 32px;
+            color: #333;
+        }
+
+        /* Form styling */
+        form {
+            width: 100%;
+            text-align: left;
+        }
+
+        select, button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Movie list styling */
+        ul {
+            list-style-type: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        .movie-item {
+            display: flex;
+            align-items: center; /* Vertically center the items */
+            margin-bottom: 20px;
+            justify-content: flex-start; /* Align to the left */
+            width: 100%;
+        }
+
+        /* Movie poster styles */
+        .movie-poster {
+            margin-right: 20px;
+            width: 225px;  /* Set a fixed width for the poster */
+            height: auto;
+        }
+
+        .movie-poster img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        /* Movie details styling */
+        .movie-details {
+            max-width: 600px;
+        }
+
+        .movie-details strong {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .movie-details p {
+            font-size: 18px;
+        }
+
+        /* Responsive layout for smaller screens */
+        @media (max-width: 768px) {
+            .movie-item {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .movie-poster {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .movie-details {
+                text-align: center;
+            }
+        }
+
+        /* Pagination controls */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+
+        .pagination span {
+            margin: 0 10px;
+            font-size: 16px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <h1>Welcome to CineRecs!</h1>
+        <form action="/recommendations" method="get">
+            <label for="genre">Choose a genre:</label>
+            <select name="genre" id="genre">
+                <option value="">--Select Genre--</option>
+                <option value="28">Action</option>
+                <option value="12">Adventure</option>
+                <option value="16">Animation</option>
+                <option value="35">Comedy</option>
+                <option value="80">Crime</option>
+                <option value="99">Documentary</option>
+                <option value="18">Drama</option>
+                <option value="10751">Family</option>
+                <option value="14">Fantasy</option>
+                <option value="36">History</option>
+                <option value="27">Horror</option>
+                <option value="10402">Music</option>
+                <option value="9648">Mystery</option>
+                <option value="10749">Romance</option>
+                <option value="878">Science Fiction</option>
+                <option value="53">Thriller</option>
+                <option value="10752">War</option>
+            </select>
+
+            <br>
+
+            <label for="sort">Sort by:</label>
+            <select name="sort" id="sort">
+              <option value="popularity.desc">Popularity (Descending)</option>
+                <option value="popularity.asc">Popularity (Ascending)</option>
+                <option value="release_date.desc">Release Date (Newest First)</option>
+                <option value="release_date.asc">Release Date (Oldest First)</option>
+                <option value="vote_average.desc">Rating (Highest First)</option>
+                <option value="vote_average.asc">Rating (Lowest First)</option>
+            </select>
+            <br>
+
+            <button type="submit">Get Recommendations</button>
+        </form>
+
+        {% if movies %}
+        <h2>Recommended Movies:</h2>
+        <ul>
+            {% for movie in movies %}
+            <li class="movie-item">
+                <!-- Movie Poster -->
+                <div class="movie-poster">
+                    {% if movie.poster_path %}
+                        <img src="{{ movie.poster_path }}" alt="Poster for {{ movie.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/150x225?text=No+Poster" alt="No poster available">
+                    {% endif %}
+                </div>
+
+                <!-- Movie Details -->
+                <div class="movie-details">
+                  <a href="https://www.themoviedb.org/movie/{{ movie.id }}" target="_blank">
+                    <strong>{{ movie.title }}</strong>
+                  </a>            
+                  <p>Rating: {{ movie.rating }}</p>
+                  <p>Release Date: {{ movie.release_date }}</p>
+                  <p>Runtime: {{ movie.runtime }} min</p>
+                  <p>Overview: {{ movie.overview }}</p>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            {% if current_page > 1 %}
+            <a href="{{ url_for('get_movie_recommendations', page=current_page-1, genre=genre, sort=sort) }}">Previous</a>
+            {% endif %}
+            
+            <span>Page {{ current_page }} of {{ total_pages }}</span>
+
+            {% if current_page < total_pages %}
+            <a href="{{ url_for('get_movie_recommendations', page=current_page+1, genre=genre, sort=sort) }}">Next</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <p>No movies found. Please try a different genre.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
